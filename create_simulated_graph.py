@@ -58,15 +58,18 @@ def graph_simu_nx(Infects, G):
     #I_previous é o vetor de indices dos nos infectados no tempo 0
     I_previous = np.where(Infects[0]==1)[0]
 
+    for i in I_previous:
+        graph_sim.add_node(i)
+
     #done é a lista com os indices dos nos que ja descobrimos o pai
-    done = [I_previous[0]]
+    done = [I_previous]
 
     for status in Infects[1:]:
         I = list(np.where(status==1)[0])
         I_current = I.copy()
-        for i in done:
-            if i in I_current:
-                I_current.remove(i)
+        for article in done:
+            if article in I_current:
+                I_current.remove(article)
 
         if len(I_current) == 0:
             continue
@@ -82,17 +85,19 @@ def graph_simu_nx(Infects, G):
             for node in I_current:
                 #pegando a probabilidade de cada no ja infectado ter infectado o no node
                 influences = G[node]
-                probs = np.zeros(s)
+                probs = [influences[i] for i in I_previous]
 
-                for i in I_previous:
-                    probs[i] = influences[i]
                 if sum(probs) != 0 :
                     probs = probs/sum(probs)
-                pos = np.random.choice(range(s), p=probs, size=1)
-                graph_sim.add_edge(pos[0], node)
+                else:
+                    # se o no nao foi influenciado por ninguem entao nao pode ser influenciador
+                    Infects[:, node] = np.zeros(Infects.shape[0])
+                    done.append(node)
+                    continue
+
+                pos = np.random.choice(len(probs), 1, p=probs)
+                graph_sim.add_edge(I_previous[pos[0]], node)
                 done.append(node)
-                if pos == 0:
-                    print(probs)
         I_previous = I
 
     return graph_sim
