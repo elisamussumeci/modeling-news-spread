@@ -2,11 +2,11 @@ import numpy as np
 import csv
 from scipy.stats import bernoulli
 
-G = np.loadtxt(open('/home/elisa/Projetos/TCC/charlie_results/graph_complete.csv'), delimiter=",")
-nodes = np.loadtxt(open('/home/elisa/Projetos/TCC/charlie_results/original_graph_nodes.csv'), delimiter=",")
+G = np.loadtxt(open('/home/elisa/Projetos/modeling-news-spread/charlie_results/graph_complete.csv'), delimiter=",")
+nodes = np.loadtxt(open('/home/elisa/Projetos/modeling-news-spread/charlie_results/empirical_graph_nodes.csv'), delimiter=",")
 
 # load list of domains in data
-with open('/home/elisa/Projetos/TCC/charlie_results/graph_original_domains_each_node.txt') as f:
+with open('/home/elisa/Projetos/modeling-news-spread/charlie_results/graph_original_domains_each_node.txt') as f:
     domains = f.read().splitlines()
 
 # create dictionary, one colour to each domain
@@ -21,14 +21,13 @@ for pos, i in enumerate(total_d):
 #initial conditions
 eig = np.linalg.eig(G)[0].max()
 
-i0 = np.zeros(G.shape[0])
-i0[0] = 1
+i0 = np.loadtxt(open('/home/elisa/Projetos/modeling-news-spread/charlie_results/i0.csv'), delimiter=",")
 s0 = 1-i0
-
+total_articles = len(i0)
 
 def fun(t, y, pars):
     y = np.array(y)
-    i,s = y[:1786],y[1786:]
+    i,s = y[:total_articles],y[total_articles:]
     A, lamb = pars
 
     M =  (i * A).sum(axis=1)
@@ -44,11 +43,11 @@ def fun(t, y, pars):
 
 
 def plot_sol(sol, color_dict, domains):
-    plots = list_plot([(j[0],j[1][0]) for j in sol[:1786]], color=color_dict[domains[0]], plotjoined=True, alpha=.8, gridlines=true)
+    plots = list_plot([(j[0],j[1][0]) for j in sol[:total_articles]], color=color_dict[domains[0]], plotjoined=True, alpha=.8, gridlines=true)
     for i in range(500):
         co = color_dict[domains[i]]
-        plots += list_plot([(j[0], j[1][i]) for j in sol[:1786]], color=co, plotjoined=True, alpha=.2, gridlines=true)
-    plots.save('/home/elisa/Projetos/TCC/charlie_results/simulation.png')
+        plots += list_plot([(j[0], j[1][i]) for j in sol[:total_articles]], color=co, plotjoined=True, alpha=.2, gridlines=true)
+    plots.save('/home/elisa/Projetos/modeling-news-spread/charlie_results/simulation.png')
 
 
 
@@ -94,9 +93,9 @@ def create_infected_matrix(la, T):
 T = ode_solver()
 T.algorithm = "rkf45"
 T.function = fun
-l = 1/eig + 0.0001
+l = 1/eig + 0.000025
 
 
 dI, Infects = create_infected_matrix(l, T)
-np.savetxt('/home/elisa/Projetos/TCC/charlie_results/dI.csv', dI, delimiter=',')
-np.savetxt('/home/elisa/Projetos/TCC/charlie_results/Infects.csv', Infects, delimiter=',')
+np.savetxt('/home/elisa/Projetos/modeling-news-spread/charlie_results/dI.csv', dI, delimiter=',')
+np.savetxt('/home/elisa/Projetos/modeling-news-spread/charlie_results/Infects.csv', Infects, delimiter=',')
