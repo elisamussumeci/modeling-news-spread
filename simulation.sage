@@ -81,7 +81,7 @@ def create_infects(dI):
 
 
 def create_infected_matrix(la, T):
-    T.ode_solve(t_span=[0, 5], y_0=list(i0)+list(s0), num_points=3000, params=[G, la])
+    T.ode_solve(t_span=[0, 14], y_0=list(i0)+list(s0), num_points=16, params=[G, la])
     plot_sol(T.solution, color_dict, domains)
 
     dI = create_dI(T.solution)
