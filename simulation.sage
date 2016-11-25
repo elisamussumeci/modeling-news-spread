@@ -58,34 +58,50 @@ def plot_sol(sol, color_dict, domains):
 def create_dI(sol):
     s = len(T.solution[0][1])/2
     dI = np.zeros((len(T.solution), s))
+    dS = np.zeros((len(T.solution), s))
     c = 0
     for i,v in sol:
-        dI[c:] =v[:s]
+        dI[c:] = v[:s]
+        dS[c:] = v[s:]
         c+=1
-    return dI
+    return dI, dS
+
+def create_Infects(dI,dS):
+    dR = 1-(dS+dI)
+
+    Infects = np.zeros(dI.shape)
+    Infects[0] = dI[0]
+
+    S0 = np.ones(dI.shape[1]) - Infects[0]
+    R0 = np.zeros(dI.shape[1])
+    I0 = Infects[0]
+
+    for t in range(1,dI.shape[0]):
+
+        I = bernoulli.rvs(dI[t]*S0)
+        R = bernoulli.rvs(dR[t]*I0)
+
+        Infects[t] = I0 - R + I
+        a = Infects[t]
+
+        if len(a[a<0]) > 0:
+            b = I0-R
+            if len(b[b<0])>0:
+                print('ei')
 
 
-def create_infects(dI):
-    B = lambda p: bernoulli.rvs(p, size=1)[0]
-    Infects = np.vectorize(B)(dI)
+        I0 = Infects[t]
+        S0 = S0 - I
 
-    for pos in range(Infects.shape[1]):
-        vector = Infects[:,pos]
-        indexes = np.where(vector == 1)[0]
-        if indexes != []:
-            i_0,i_n = min(indexes), max(indexes)
-            if i_n-i_0+1 != len(indexes):
-                Infects[:,pos][i_0:i_n] = 1
-
-    return Infects
+    return(Infects)
 
 
 def create_infected_matrix(la, T):
     T.ode_solve(t_span=[0, 14], y_0=list(i0)+list(s0), num_points=16, params=[G, la])
     plot_sol(T.solution, color_dict, domains)
 
-    dI = create_dI(T.solution)
-    Infects = create_infects(dI)
+    dI, dS = create_dI(T.solution)
+    Infects = create_infects(dI,dS)
 
     return dI, Infects
 
