@@ -109,7 +109,7 @@ def create_infected_matrix(la, T):
 T = ode_solver()
 T.algorithm = "rkf45"
 T.function = fun
-l = 1/eig + 0.0000215
+l = 0.0000215
 
 
 dI, Infects = create_infected_matrix(l, T)
